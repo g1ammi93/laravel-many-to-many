@@ -84,6 +84,20 @@
                 class="img-fluid" alt="Immagine post" id="preview">
         </div>
     </div>
+    <div class="col-12">
+        <div class="my-3">
+            <p>Seleziona le Tecnologie usate nel progetto</p>
+            @foreach ($technologies as $technology)
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" name="technologies[]"
+                        id="{{ "technology - $technology->id" }}" value="{{ $technology->id }}"
+                        @if (in_array($technology->id, old('technologies', $prev_technologies ?? []))) checked @endif>
+                    <label class="form-check-label"
+                        for="{{ "technology - $technology->id" }}">{{ $technology->label }}</label>
+                </div>
+            @endforeach
+        </div>
+    </div>
 </div>
 
 <div class="d-flex justify-content-between align-items-center">

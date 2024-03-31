@@ -20,12 +20,21 @@
 
     <div class="clearfix">
         @if ($project->image)
-            <img src="{{ $project->printImage() }}" alt="{{ $project->title }}" class="me-2 float-start">
+            {{-- <img src="{{ $project->printImage() }}" alt="{{ $project->title }}" class="me-2 float-start"> --}}
         @endif
         <p>{{ $project->description }}</p>
-        <div>
-            <strong>Creato il:</strong> {{ $project->getFormattedDate('created_at') }}
-            <strong>Ultima modifica:</strong> {{ $project->getFormattedDate('updated_at') }}
+        <div class="d-flex justify-content-between">
+            <div>
+                <strong>Creato il:</strong> {{ $project->getFormattedDate('created_at') }}
+                <strong>Ultima modifica:</strong> {{ $project->getFormattedDate('updated_at') }}
+            </div>
+            <div>
+                @forelse ($project->technologies as $technology)
+                    <span class="badge rounded-pill text-bg-{{ $technology->color }}">{{ $technology->label }}</span>
+                @empty
+                    Nessuna Tecnologia Dichiarata
+                @endforelse
+            </div>
         </div>
     </div>
 

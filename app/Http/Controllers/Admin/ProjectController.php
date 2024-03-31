@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Technology;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -29,7 +30,8 @@ class ProjectController extends Controller
     {
         $project = new Project();
         $categories = Category::select('label', 'id')->get();
-        return view('admin.projects.create', compact('project', 'categories'));
+        $technologies = Technology::select('label', 'id')->get();
+        return view('admin.projects.create', compact('project', 'categories', 'technologies'));
     }
 
     /**
@@ -43,6 +45,7 @@ class ProjectController extends Controller
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:png,jpg,jpeg',
             'category_id' => 'nullable|exists:categories,id',
+            'technologies' => 'nullable|exists:technologies,id',
         ], [
             'title.required' => 'Il titolo è obbligatorio',
             'description.required' => 'La descrizione è obbligatoria',
@@ -50,6 +53,7 @@ class ProjectController extends Controller
             'image.image' => 'Il file inserito non è un immagine',
             'image.mimes' => 'Le estensione valide sono: .png, .jpg e .jpeg',
             'category_id.exists' => 'Categoria non valida o non esistente',
+            'technologies.exists' => 'Tecnologia selezionata non valida',
         ]);
 
         $data = $request->all();
@@ -68,6 +72,10 @@ class ProjectController extends Controller
 
         $project->save();
 
+        if (Arr::exists($data, 'technologies')) {
+            $project->technologies()->attach($data['technologies']);
+        }
+
         return to_route('admin.projects.show', $project)->with('message', 'Post creato con successo')->with('type', 'success');
     }
 
@@ -84,8 +92,12 @@ class ProjectController extends Controller
      */
     public function edit(Project $project)
     {
+        $prev_technologies = $project->technologies->pluck('id')->toArray();
+
         $categories = Category::select('label', 'id')->get();
-        return view('admin.projects.edit', compact('project', 'categories'));
+        $technologies = Technology::select('label', 'id')->get();
+
+        return view('admin.projects.edit', compact('project', 'categories', 'technologies', 'prev_technologies'));
     }
 
     /**
@@ -99,6 +111,7 @@ class ProjectController extends Controller
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:png,jpg,jpeg',
             'category_id' => 'nullable|exists:categories,id',
+            'technologies' => 'nullable|exists:technologies,id',
         ], [
             'title.required' => 'Il titolo è obbligatorio',
             'description.required' => 'La descrizione è obbligatoria',
@@ -106,6 +119,7 @@ class ProjectController extends Controller
             'image.image' => 'Il file inserito non è un immagine',
             'image.mimes' => 'Le estensione valide sono: .png, .jpg e .jpeg',
             'category_id.exists' => 'Categoria non valida o non esistente',
+            'technologies.exists' => 'Tecnologia selezionata non valida',
         ]);
 
         $data = $request->all();
@@ -122,6 +136,10 @@ class ProjectController extends Controller
         }
 
         $project->update($data);
+
+        if (Arr::exists($data, 'technologies'))
+            $project->technologies()->sync($data['technologies']);
+        elseif (!Arr::exists($data, 'technologies') && $project->has('technologies')) $project->technologies()->detach();
 
         return to_route('admin.projects.show', $project)->with('type', 'success')->with('message', 'Post modificato con successo');
     }
